@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8"> <!-- set readable code to utf-8 format -->
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Draggable Objects</title> <!-- set the title of the page to "Draggable Objects" -->
+        <link rel="stylesheet" href="style.css"> <!-- css stylesheet -->
+	</head>
+	<body> <!-- Main Body -->
+        <!-- TEXT BOX STARTS HERE -->
+        <div class="txtbox"> <!-- Text Box Container -->
+		    <h1 class="title-obj">Draggable Objects</h1> <!-- Main Heading "Draggable Objects" -->
+		    <p class="test">Testing in progress...</p> <!-- Subheading "Testing in progress..." -->
+        </div>
+        <!-- draggable objects will be implemented here in the future -->   
+        <div class="drag-cont"> <!-- Test Body for Draggable Objects -->
+                <div class="movable">
+                    <p>here!</p>
+                    <img class="text-bubble" src="./media/shove.jpg" alt="Bubble">
+                </div>
+        </div>
+	</body>
+    <!-- JavaScript for Draggable Objects -->
+    <script>
+        /* ===== DOM ELEMENT SELECTION ===== */
+        const movable = document.querySelector('.movable'); <!-- Select the draggable object element -->
+        const dragCont = document.querySelector('.drag-cont'); <!-- Select the drag container -->
+        const textBubble = document.querySelector('.text-bubble'); <!-- Select the text bubble image -->
+        
+        /* ===== STATE VARIABLES ===== */
+        let isGrabbing = false; <!-- Track if object is currently being dragged -->
+        let offsetX = 0; <!-- Store horizontal offset for dragging -->
+        let offsetY = 0; <!-- Store vertical offset for dragging -->
+        let isBubbleOpen = false; <!-- Track if bubble is currently open -->
+
+        /* ===== CLICK EVENT LISTENER ===== */
+        /* Toggle bubble visibility when object is clicked */
+        movable.addEventListener('click', (e) => { <!-- When clicking on movable element -->
+            e.stopPropagation(); <!-- Prevent event from bubbling -->
+            isBubbleOpen = !isBubbleOpen; <!-- Toggle bubble open state -->
+            if (isBubbleOpen) {
+                textBubble.classList.add('active'); <!-- Show bubble -->
+            } else {
+                textBubble.classList.remove('active'); <!-- Hide bubble -->
+            }
+        });
+
+        /* ===== MOUSE DOWN EVENT LISTENER ===== */
+        /* Start dragging when mouse is pressed on the object -->
+        movable.addEventListener('mousedown', (e) => { <!-- When the mouse button is pressed down on the movable element -->
+            if (isBubbleOpen) return; <!-- Don't drag if bubble is open -->
+            isGrabbing = true;
+            movable.style.cursor = 'grabbing';
+            offsetX = e.clientX - movable.offsetLeft;
+            offsetY = e.clientY - movable.offsetTop;
+        });
+
+        /* ===== MOUSE MOVE EVENT LISTENER ===== */
+        /* Handle dragging movement and bubble positioning */
+        document.addEventListener('mousemove', (e) => { <!-- When the mouse is moved -->
+            if (!isGrabbing || isBubbleOpen) return;
+
+            let newX = e.clientX - offsetX;
+
+            // Constrain to drag-cont boundaries (X-axis only)
+            newX = Math.max(0, Math.min(newX, dragCont.offsetWidth - movable.offsetWidth));
+
+            movable.style.left = newX + 'px';
+            
+            // Update bubble position if open
+            if (isBubbleOpen) {
+                updateBubblePosition();
+            }
+        });
+
+        /* ===== MOUSE UP EVENT LISTENER ===== */
+        /* Stop dragging when mouse is released */
+        document.addEventListener('mouseup', () => { <!-- When the mouse button is released -->
+            isGrabbing = false;
+            movable.style.cursor = 'grab';
+        });
+
+        /* ===== BUBBLE POSITION FUNCTION ===== */
+        /* Calculate and apply bubble position above the object */
+        function updateBubblePosition() { <!-- Function to position bubble above the object -->
+            const rect = movable.getBoundingClientRect();
+            textBubble.style.left = (rect.left + rect.width / 2 - textBubble.offsetWidth / 2) + 'px';
+            textBubble.style.top = (rect.top - textBubble.offsetHeight - 10) + 'px';
+        }
+
+        /* ===== CONTINUOUS BUBBLE UPDATE ===== */
+        /* Update bubble position every 10ms to follow object -->
+        setInterval(() => {
+            if (isBubbleOpen) {
+                updateBubblePosition();
+            }
+        }, 10);
+
+        /* ===== CLICK OUTSIDE EVENT LISTENER ===== */
+        /* Close bubble when clicking outside the object */
+        document.addEventListener('click', (e) => { <!-- When clicking anywhere on document -->
+            if (!movable.contains(e.target)) { <!-- If click is outside movable element -->
+                isBubbleOpen = false;
+                textBubble.classList.remove('active'); <!-- Close bubble -->
+            }
+        });
+    </script>
+
+</html>
